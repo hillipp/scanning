@@ -2,8 +2,6 @@
 <html>
 <head>
   <title>Scandit to SharePoint</title>
-  <!-- Load the Scandit SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/scandit-sdk@6.x/build/scandit-sdk.min.js"></script>
   <style>
     #scanner { width: 100%; height: 300px; border: 1px solid #ccc; }
     #status { font-weight: bold; margin-top: 1em; }
@@ -15,46 +13,52 @@
   <div id="scanner"></div>
   <p id="status">Waiting for scan...</p>
 
+  <!-- ✅ Load Scandit SDK at the bottom, BEFORE your JS -->
+  <script src="https://cdn.jsdelivr.net/npm/scandit-sdk@6.x/build/scandit-sdk.min.js"></script>
+
   <script>
-    // ✅ Replace this with your Power Automate flow URL
-    const POWER_AUTOMATE_URL = "https://prod-25.canadacentral.logic.azure.com:443/workflows/ab1985337bb94d1798ceacdef4a727be/triggers/manual/paths/invoke?api-version=2016-06-01";
+    window.addEventListener("load", function () {
+      const POWER_AUTOMATE_URL = "https://prod-25.canadacentral.logic.azure.com:443/workflows/ab1985337bb94d1798ceacdef4a727be/triggers/manual/paths/invoke?api-version=2016-06-01";
+      const PROJECT_KEY = "d3f1c202a95f76b4b94d24b1af4a2e0838d24808ccd8debfa23cd924e80020d4";
 
-    // ✅ Replace this with your Enterprise Browser project key (MUST be in quotes)
-    const PROJECT_KEY = "d3f1c202a95f76b4b94d24b1af4a2e0838d24808ccd8debfa23cd924e80020d4";
+      if (typeof ScanditSDK === 'undefined') {
+        document.getElementById("status").textContent = "❌ Scandit SDK failed to load.";
+        return;
+      }
 
-    // Wait until SDK is loaded, then initialize the scanner
-    ScanditSDK.configure(PROJECT_KEY, {
-      engineLocation: "https://cdn.jsdelivr.net/npm/scandit-sdk@6.x/build/",
-    }).then(() => {
-      return ScanditSDK.BarcodePicker.create(document.getElementById("scanner"), {
-        playSoundOnScan: true,
-        vibrateOnScan: true
-      });
-    }).then(barcodePicker => {
-      barcodePicker.onScan(scanResult => {
-        const scannedCode = scanResult.barcodes[0].data;
-        document.getElementById("status").textContent = "Scanned: " + scannedCode;
-
-        // Send to Power Automate
-        fetch(POWER_AUTOMATE_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            barcode: scannedCode,
-            scannedBy: "Device1",
-            scanTime: new Date().toISOString()
-          })
-        }).then(res => {
-          document.getElementById("status").textContent = res.ok ? "✅ Sent to SharePoint!" : "❌ Failed to send.";
-        }).catch(() => {
-          document.getElementById("status").textContent = "❌ Network error.";
+      ScanditSDK.configure(PROJECT_KEY, {
+        engineLocation: "https://cdn.jsdelivr.net/npm/scandit-sdk@6.x/build/",
+      }).then(() => {
+        return ScanditSDK.BarcodePicker.create(document.getElementById("scanner"), {
+          playSoundOnScan: true,
+          vibrateOnScan: true
         });
+      }).then(barcodePicker => {
+        barcodePicker.onScan(scanResult => {
+          const scannedCode = scanResult.barcodes[0].data;
+          document.getElementById("status").textContent = "Scanned: " + scannedCode;
+
+          fetch(POWER_AUTOMATE_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              barcode: scannedCode,
+              scannedBy: "Device1",
+              scanTime: new Date().toISOString()
+            })
+          }).then(res => {
+            document.getElementById("status").textContent = res.ok
+              ? "✅ Sent to SharePoint!"
+              : "❌ Failed to send.";
+          }).catch(() => {
+            document.getElementById("status").textContent = "❌ Network error.";
+          });
+        });
+      }).catch(error => {
+        document.getElementById("status").textContent = "❌ Failed to start scanner.";
+        console.error(error);
       });
-    }).catch(error => {
-      document.getElementById("status").textContent = "❌ Failed to load scanner.";
-      console.error(error);
     });
   </script>
 </body>
 </html>
-
