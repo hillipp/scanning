@@ -11,11 +11,11 @@
 <body>
   <h2>Scan and Send to SharePoint</h2>
   <div id="scanner"></div>
-  <p id="status">Waiting for han...</p>
+  <p id="status">Waiting for duck...</p>
 
   <script>
     const POWER_AUTOMATE_URL = "https://prod-25.canadacentral.logic.azure.com:443/workflows/ab1985337bb94d1798ceacdef4a727be/triggers/manual/paths/invoke?api-version=2016-06-01"; // ← Replace this
-    const PROJECT_KEY = d3f1c202a95f76b4b94d24b1af4a2e0838d24808ccd8debfa23cd924e80020d4; // ← Replace this
+    const PROJECT_KEY = "d3f1c202a95f76b4b94d24b1af4a2e0838d24808ccd8debfa23cd924e80020d4"; // ← Replace this
 
     ScanditSDK.configure(PROJECT_KEY, {
       engineLocation: "https://cdn.jsdelivr.net/npm/scandit-sdk@6.x/build/",
