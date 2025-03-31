@@ -1,18 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Barcode Scanner</title>
+  <title>Scandit to SharePoint</title>
   <script src="https://cdn.jsdelivr.net/npm/scandit-sdk@6.x/build/scandit-sdk.min.js"></script>
+  <style>
+    #scanner { width: 100%; height: 300px; }
+    #status { font-weight: bold; margin-top: 1em; }
+  </style>
 </head>
 <body>
-  <h2>Scan a barcode</h2>
+  <h2>Scan and Send to SharePoint</h2>
   <div id="scanner"></div>
-  <p id="status">Waiting to scan...</p>
+  <p id="status">Waiting for scan...</p>
 
   <script>
-    const POWER_AUTOMATE_URL = "https://prod-25.canadacentral.logic.azure.com:443/workflows/ab1985337bb94d1798ceacdef4a727be/triggers/manual/paths/invoke?api-version=2016-06-01"; // Replace with your URL
+    const POWER_AUTOMATE_URL = "https://prod-25.canadacentral.logic.azure.com:443/workflows/ab1985337bb94d1798ceacdef4a727be/triggers/manual/paths/invoke?api-version=2016-06-01"; // ← Replace this
+    const PROJECT_KEY = "d3f1c202a95f76b4b94d24b1af4a2e0838d24808ccd8debfa23cd924e80020d4"; // ← Replace this
 
-    ScanditSDK.configure("d3f1c202a95f76b4b94d24b1af4a2e0838d24808ccd8debfa23cd924e80020d4", {
+    ScanditSDK.configure(PROJECT_KEY, {
       engineLocation: "https://cdn.jsdelivr.net/npm/scandit-sdk@6.x/build/",
     }).then(() => {
       return ScanditSDK.BarcodePicker.create(document.getElementById("scanner"), {
@@ -29,15 +34,11 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             barcode: barcode,
-            scannedBy: "Device A",
+            scannedBy: "Device1",
             scanTime: new Date().toISOString()
           })
         }).then(res => {
-          if (res.ok) {
-            document.getElementById("status").textContent = "Scan sent to SharePoint!";
-          } else {
-            document.getElementById("status").textContent = "Failed to send.";
-          }
+          document.getElementById("status").textContent = res.ok ? "Sent to SharePoint!" : "Failed to send.";
         });
       });
     });
